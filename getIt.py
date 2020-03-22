@@ -5,25 +5,32 @@ from datetime import datetime
 import urllib.request
 
 def main():
-    page = urllib.request.urlopen("https://www.worldometers.info/coronavirus/country/us")
+    page = urllib.request.urlopen("https://www.worldometers.info/coronavirus/")
     soup = BeautifulSoup(page, 'html.parser')
-    usaTable = soup.find("table", {"id": "usa_table_countries_today"})
-    tableBody = usaTable.find('tbody')
+    worldTable = soup.find("table", {"id": "main_table_countries_today"})
+    tableBody = worldTable.find('tbody')
     tableRows = tableBody.find_all('tr')
-    while len(tableRows) < 20:
-        print(len(tableRows))
-        time.sleep(1)
-        tableBody = usaTable.find('tbody')
-        tableRows = tableBody.find_all('tr')
     rowResults = []
     for tableRow in tableRows:
         rowResult = singleRowToRowResult(tableRow)
         rowResults.append(rowResult)
     singleStateScrape = SingleStateScrape(rowResults)
-    f = open("demofile3.txt", "w")
-    f.write(singleStateScrape.serialize())
-    f.close()
+    fileWriter = FileWriter(singleStateScrape, "world")
+    fileWriter.writeFile()
 
+def main2():
+    page = urllib.request.urlopen("https://www.worldometers.info/coronavirus/country/us")
+    soup = BeautifulSoup(page, 'html.parser')
+    usaTable = soup.find("table", {"id": "usa_table_countries_today"})
+    tableBody = usaTable.find('tbody')
+    tableRows = tableBody.find_all('tr')
+    rowResults = []
+    for tableRow in tableRows:
+        rowResult = singleRowToRowResult(tableRow)
+        rowResults.append(rowResult)
+    singleStateScrape = SingleStateScrape(rowResults)
+    fileWriter = FileWriter(singleStateScrape, "usa")
+    fileWriter.writeFile()
 
 def singleRowToRowResult(singleTr):
     tds = singleTr.find_all('td')
@@ -67,7 +74,7 @@ def getText(singleTD):
 class SingleStateScrape:
     def __init__(self, rowResults):
         self.rowResults = rowResults
-        self.scrapeTime = datetime.utcnow().strftime("%m/%d/%Y,%H:%M:%S")
+        self.scrapeTime = datetime.utcnow().strftime("%m:%d:%Y,%H:%M:%S")
 
     def serialize(self):
         result = {}
@@ -89,6 +96,18 @@ class RowResult:
     def serialize(self):
         return self.__dict__
 
+
+class FileWriter:
+    def __init__(self, singleStateScrape: SingleStateScrape, tag: str):
+        self.singleStateScrape = singleStateScrape
+        self.tag = tag
+
+    def writeFile(self):
+        fileName = self.singleStateScrape.scrapeTime
+        relativePath = "scrapedData/" + self.tag + "/" + fileName
+        f = open(relativePath, "w")
+        f.write(self.singleStateScrape.serialize())
+        f.close()
 
 if __name__== "__main__":
   main()
