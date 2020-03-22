@@ -2,8 +2,6 @@ import urllib.request
 from bs4 import BeautifulSoup
 from row_result import RowResult
 from single_scrape import SingleScrape
-import json
-from datetime import datetime
 
 class ScrapeRunner:
     def __init__(self, url: str, tableName: str):
