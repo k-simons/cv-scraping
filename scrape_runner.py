@@ -2,6 +2,8 @@ import urllib.request
 from bs4 import BeautifulSoup
 from row_result import RowResult
 from single_scrape import SingleScrape
+import ssl
+
 
 class ScrapeRunner:
     def __init__(self, url: str, tableName: str):
@@ -9,7 +11,8 @@ class ScrapeRunner:
         self.tableName = tableName
 
     def run(self) -> SingleScrape:
-        page = urllib.request.urlopen(self.url)
+        context = ssl._create_unverified_context()
+        page = urllib.request.urlopen(self.url, context=context)
         soup = BeautifulSoup(page, 'html.parser')
         usaTable = soup.find("table", {"id": self.tableName})
         tableBody = usaTable.find('tbody')
