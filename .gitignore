@@ -1,1 +1,3 @@
 __pycache__/*
+cron_stdout.log
+cron_stderr.log
