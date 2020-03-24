@@ -1,4 +1,5 @@
 import urllib.request
+from typing import Dict
 from bs4 import BeautifulSoup
 from row_result import RowResult
 from single_scrape import SingleScrape
@@ -6,9 +7,10 @@ import ssl
 
 
 class ScrapeRunner:
-    def __init__(self, url: str, tableName: str):
+    def __init__(self, url: str, tableName: str, tdMap: Dict[str, int]):
         self.url = url
         self.tableName = tableName
+        self.tdMap = tdMap
 
     def run(self) -> SingleScrape:
         context = ssl._create_unverified_context()
@@ -25,39 +27,40 @@ class ScrapeRunner:
 
     def singleRowToRowResult(self, singleTr):
         tds = singleTr.find_all('td')
-        state = tds[0]
-        totalCases = tds[1]
-        newCases = tds[2]
-        totalDeaths = tds[3]
-        newDeaths = tds[4]
-        totalRecovered = tds[5]
-        activeCases = tds[6]
-        stateString = self.getText(state)
-        totalCases = self.toInt(totalCases)
-        newCases = self.toIntNoPlus(newCases)
-        totalDeaths = self.toInt(totalDeaths)
-        newDeaths = self.toIntNoPlus(newDeaths)
-        totalRecovered = self.toInt(totalRecovered)
-        activeCases = self.toInt(activeCases)
+        stateString = self.getTextFromTD(tds, "state")
+        totalCasesString = self.getTextFromTD(tds, "totalCases")
+        newCasesString = self.getTextFromTD(tds, "newCases")
+        totalDeathsString = self.getTextFromTD(tds, "totalDeaths")
+        newDeathsString = self.getTextFromTD(tds, "newDeaths")
+        totalRecoveredString = self.getTextFromTD(tds, "totalRecovered")
+        activeCasesString = self.getTextFromTD(tds, "activeCases")
+        totalCases = self.strToInt(totalCasesString)
+        newCases = self.toIntNoPlus(newCasesString)
+        totalDeaths = self.strToInt(totalDeathsString)
+        newDeaths = self.toIntNoPlus(newDeathsString)
+        totalRecovered = self.strToInt(totalRecoveredString)
+        activeCases = self.strToInt(activeCasesString)
         return RowResult(stateString, totalCases, newCases, totalDeaths, newDeaths, totalRecovered, activeCases)
 
-    def toIntNoPlus(self, singleTD):
-        strAsInput = self.getText(singleTD)
+    def getTextFromTD(self, tds, key: str) -> str:
+        if key not in self.tdMap:
+            return ""
+        td = tds[self.tdMap[key]]
+        return self.getText(td)
+
+
+    def toIntNoPlus(self, strAsInput: str) -> int:
         noPlus = self.removeChar(strAsInput, "+")
         return self.strToInt(noPlus)
 
-    def toInt(self, singleTD):
-        strAsInput = self.getText(singleTD)
-        return self.strToInt(strAsInput)
-
-    def strToInt(self, strAsInput):
+    def strToInt(self, strAsInput: str) -> int:
         if strAsInput == "":
             return 0
         return int(strAsInput.replace(',', ''))
 
-    def removeChar(self, strAsInput, charToRemove):
+    def removeChar(self, strAsInput: str, charToRemove: str) -> str:
         return strAsInput.replace(charToRemove, "")
 
-    def getText(self, singleTD):
+    def getText(self, singleTD) -> str:
         rawText = singleTD.text
         return rawText.strip()
