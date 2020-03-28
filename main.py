@@ -16,7 +16,7 @@ def scrapeWorld():
         "totalRecovered": 5,
         "activeCases": 6,
     }
-    scrapeRunner = ScrapeRunner("https://www.worldometers.info/coronavirus/", "main_table_countries_today", worldMap)
+    scrapeRunner = ScrapeRunner("https://www.worldometers.info/coronavirus", "main_table_countries_today", worldMap)
     singleScrape = scrapeRunner.run()
     fileWriter = FileWriter(singleScrape, "world")
     fileWriter.writeFile()

@@ -14,7 +14,10 @@ class ScrapeRunner:
 
     def run(self) -> SingleScrape:
         context = ssl._create_unverified_context()
-        page = urllib.request.urlopen(self.url, context=context)
+        user_agent = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)'
+        headers = { 'User-Agent' : user_agent }
+        req = urllib.request.Request(self.url, None, headers)
+        page = urllib.request.urlopen(req, context=context)
         soup = BeautifulSoup(page, 'html.parser')
         usaTable = soup.find("table", {"id": self.tableName})
         tableBody = usaTable.find('tbody')
