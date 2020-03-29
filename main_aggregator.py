@@ -14,7 +14,7 @@ def main():
     writeAggregatedFile("world")
 
 def writeAggregatedFile(subDir: str):
-    finalMap = createFinalMap2(subDir)
+    finalMap = createFinalMap(subDir)
     finalJSONMap = json.dumps(finalMap)
     mypath = aggregatedDataPrefix + subDir +  "/data.json"
     f = open(mypath, "w")
