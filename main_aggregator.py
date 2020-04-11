@@ -14,7 +14,7 @@ def main():
     writeAggregatedFile("world")
 
 def writeAggregatedFile(subDir: str):
-    finalMap = createFinalMap(subDir)
+    finalMap = createFinalMap2(subDir)
     finalJSONMap = json.dumps(finalMap)
     mypath = aggregatedDataPrefix + subDir +  "/data.json"
     f = open(mypath, "w")
@@ -42,10 +42,35 @@ def createFinalMap2(subDir: str):
         if firstDayDateString != secondDayDateString:
             smoothed = smoothOut(firstDay, secondDay)
             finalMap[firstDayDateString] = smoothed
+
     return finalMap
 
 def smoothOut(firstDay, secondDay):
-    return firstDay
+    w1, w2 = getWeights(firstDay, secondDay)
+    newResults = []
+    for item in firstDay["rowResults"]:
+        for item2 in secondDay["rowResults"]:
+            if item["state"] == item2["state"]:
+                combine = {
+                    "state": item["state"],
+                }
+                for k in item.keys():
+                    if k == "state":
+                        continue
+                    valueFromItem1 = item[k]
+                    valueFromItem2 = item2[k]
+                    newValue = round((valueFromItem1 * w1) + (valueFromItem2 * w2))
+                    combine[k] = newValue
+                newResults.append(combine)
+
+    return newResults
+
+def getWeights(firstDay, second):
+    firstDataTimeObject = dataToDatetimeObject(firstDay)
+    secondDataTimeObject = dataToDatetimeObject(second)
+    if firstDataTimeObject.hour == 23:
+        return 1, 0
+    return (firstDataTimeObject.hour/24), (secondDataTimeObject.hour/24)
 
 def createFinalMap(subDir: str):
     mypath = scrapedDataPrefix + subDir
@@ -67,7 +92,7 @@ def createFinalMap(subDir: str):
         finalMap[key] = scrapesPerData[key]["rowResults"]
     return finalMap
 
-def dataToDatetimeObject(data):
+def dataToDatetimeObject(data) -> datetime :
     scrapeTime = data["scrapeTime"]
     datetime_object = datetime.strptime(scrapeTime, "%m:%d:%Y,%H:%M:%S")
     return datetime_object
